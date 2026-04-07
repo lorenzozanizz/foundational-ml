@@ -1,4 +1,4 @@
-# Hopfield/Krotov Networks
+# A pure C++ learning resource for foundational Machine Learning
 
 This project explores a collection of neural models spanning unsupervised representation learning, associative memory, probabilistic generative modeling, and reservoir computing.
 The implemented architectures include Self–Organizing Maps for topology–preserving embedding, Hopfield and Boltzmann networks for energy–based associative memory, deep generative stacks based on Restricted Boltzmann Machines, multilayer perceptrons trained by backpropagation, and reservoir networks for temporal feature extraction.
@@ -33,6 +33,8 @@ To run the examples some dataset are required, available at the following [link]
 Download both the datasets and add them in the ```/build``` folder.
 
 ### Hopefield Networks on MNIST
+
+![Hopfield Logger](./resources/Hopfield1.jpeg)
 This program implements and compares deterministic and stochastic Hopfield networks for associative memory, denoising, and pattern classification on binarized MNIST digits. A small set of representative patterns is stored using different learning rules, and the network dynamics are visualised through logging of states, energy, temperature, and order parameters. The denoising capability is demonstrated by reconstructing noisy inputs, while a simple attractor–based classifier evaluates retrieval performance through a confusion matrix and cross–talk visualisation.
 #### Setting Parameters
 The network size is fixed by the image resolution (```MNIST_SIZE``` x ```MNIST_SIZE```), determining memory capacity and computational cost. The choice of learning rule (Hebbian or Storkey) controls interference and stability. Update policy and group size regulate convergence speed and synchrony. In the stochastic case, the annealing schedule parameters (initial/final temperature and iterations) govern exploration versus convergence. Noise level in the input tests robustness, while the classifier confidence threshold trades off rejection rate and accuracy. The number of iterations sets reconstruction depth and classification reliability.
@@ -40,6 +42,9 @@ The network size is fixed by the image resolution (```MNIST_SIZE``` x ```MNIST_S
 In order to run this example, after following the instructions written in the **Installation** section, in the ```\build ``` folder you have to execute ```/.hopefield```
 
 ### Self–Organizing Map on MNIST
+
+
+![SOM on MNIST](./resources/gnuplot_res.png)
 This example trains a Kohonen Self–Organizing Map on the MNIST dataset to obtain a topology–preserving embedding of handwritten digits.
 After unsupervised training, neurons are labeled by majority voting, and the resulting map is analyzed using U–Matrix methods and K–Means clustering to visualize and study the emergent class structure in the learned representation.
 
@@ -69,6 +74,10 @@ The vector ```size``` defines the temporal window of each sample, while ```NUM_S
 In order to run this example, after following the instructions written in the **Installation** section, in the ```\build ``` folder you have to execute ```/.mlp```
 
 ### Boltzmann Machines on MNIST
+
+![Boltzmann on MNIST](./resources/Hopfield2.png)
+![Boltzmann On face](./resources/kernel.png)
+
 This program implements a Deep Belief Network composed of stacked Restricted Boltzmann Machines and trains it in an unsupervised manner on binarized MNIST data. The network learns a hierarchy of latent representations through layer–wise Contrastive Divergence, and the learned filters are visualized across depths to illustrate the progressive emergence of structured features. Additional sampling experiments highlight the generative capability of the lowest RBM by reconstructing and synthesizing patterns from random initial states.
 ### Setting Parameters
 The visible and hidden layer sizes define the spatial resolution and abstraction level of each representation stage. The weight initialization scale controls early training stability. Training iterations and mini–batch size determine convergence speed and noise in gradient estimates. The learning rate governs the update magnitude, while the CD–k parameter sets the trade–off between computational cost and accuracy of the divergence approximation. The number of kernels visualized per layer reflects the desired qualitative inspection depth, and the sampling sparsity and temperature regulate diversity and smoothness in generated patterns.
