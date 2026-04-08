@@ -65,6 +65,10 @@ public:
 
 	private:
 
+		/* Extract a random color in the hex format as a string, the color is 
+		* extracted uniformly random by extracting the 3 portions RGB uniformly
+		(this may have some biases, as is known)
+		*/
 		std::string random_color() {
 			static std::mt19937 rng(std::random_device{}());
 			static std::uniform_int_distribution<int> dist(0, 255);
@@ -86,30 +90,44 @@ public:
 			pipe.send_line("reset");
 		}
 
+		/* Redirect the output of the gnuplot plot into an image. This sets the
+		* gnuplot output. 
+		*/
 		PlottingContext& redirect_to_image(const std::string& file_name) {
 			pipe.send_line("set output '" + file_name + "'; set term png;");
 			return *this;
 		}
 
+		/* Begin a multi line plot
+		*/
 		PlottingContext& begin_multi_line_plot() {
 			return *this;
 		}
 
+		/* Set the title for the plot. 
+		*/
 		PlottingContext& set_title(const std::string& plot_title) {
 			pipe.send_line("set title '" + plot_title + "'");
 			return *this;
 		}
 
+		/* Set the label for the x axis of plots which have axises
+		*/
 		PlottingContext& set_x_label(const std::string& label) {
 			pipe.send_line("set xlabel '" + label + "'");
 			return *this;
 		}
 
+		/* Set the label for the y axis of plots which have axises
+		*/
 		PlottingContext& set_y_label(const std::string& label) {
 			pipe.send_line("set ylabel '" + label + "'");
 			return *this;
 		}
 
+		/* Plot a sequence of values taken as a vector of x, y tuples of general serializable type
+		* XType and YType. The serialization is entrusted to std::to_string
+		*/
 		template <typename XType, typename YType>
 		PlottingContext& plot_2d(const std::vector<std::tuple<XType, YType>>& xs) {
 			const auto size = xs.size();
@@ -122,6 +140,9 @@ public:
 			return *this;
 		}
 
+		/* Plot a sequence of values taken as two distinct vectors of x, y of general serializable type
+		* XType and YType. The serialization is entrusted to std::to_string
+		*/
 		template <typename XType, typename YType>
 		PlottingContext& plot_2d(const std::vector<XType>& xs, const std::vector<YType>& ys) {
 			if (xs.size() != ys.size()) {
@@ -137,6 +158,9 @@ public:
 			return *this;
 		}
 
+		/* Plot a sequence of datapoints without specifying the x axis ticks. The serialization 
+		* of the datatype is entrusted to std::to_string
+		*/
 		template <typename YType>
 		PlottingContext& plot_sequence(const std::vector<YType>& ys, const std::string& title = "Line") {
 			pipe.send_line("plot '-' using 0:1 with lines title '" + title + "'");
@@ -146,6 +170,10 @@ public:
 			return *this;
 		}
 
+		/* Plot a sequence of datapoints extracted from a generic indexable data structure which 
+		* supports .size() and operator[]
+		As for other functions, the serialization is entrusted to std::to_string
+		*/
 		template <typename Indexable>
 		PlottingContext& plot_indexable(const Indexable& ys, const std::string& title = "Line") {
 			pipe.send_line("plot '-' using 0:1 with lines title '" + title + "'");
@@ -155,12 +183,17 @@ public:
 			return *this;
 		}
 
+		/* Write to memory an image to a given path, where the imge is taken as an RGB / Grayscale 
+		* arrayw of contiguous values of fixed width and height.
+		*/
 		PlottingContext& write_image(const std::string& path, unsigned char* data, int width, int height, int channels) {
 			this->redirect_to_image(path);
 			this->show_image(data, width, height, channels);
 			return *this;
 		}
 
+		/* Plots an image taken to be a contiguous array of RGB / Grayscale / RGBA values. 
+		*/
 		PlottingContext& show_image(const unsigned char* buffer, int width, int height, int channels) {
 
 			pipe.send_line("set yrange [*:*] reverse");
@@ -171,12 +204,14 @@ public:
 				fprintf(raw_pipe, "plot '-' binary array=(%d,%d) format='%%uchar' with image\n", width, height);
 				fwrite(buffer, 1, width * height, raw_pipe);
 			}
-			else {
-
-			}
 			return *this;
 		}
 
+
+		/* Shows multiple heatmaps in the same gnuplot terminal, where values in each buffer array are taken to 
+		* be a width x height matrix and renormalized to the color scale specified. The resulting multiplot will have 
+		* plot_width x plot_height subplots each of width x height pixels.
+		*/
 		template <typename FloatingType>
 		PlottingContext& plot_multiple_heatmaps(
 			std::vector<FloatingType*> buffers, unsigned int plot_width, unsigned int plot_height,
@@ -223,6 +258,10 @@ public:
 			return *this;
 		}
 
+
+		/* Shows a heatmap where values in the buffer array are taken to be a width x height matrix
+		* and renormalized to the color scale specified.
+		*/
 		PlottingContext& show_heatmap(const float* buffer, int width, int height, 
 			std::string palette = "") {
 
@@ -246,6 +285,9 @@ public:
 			return *this;
 		}
 
+		/* Shows a heatmap where values in the buffer array are taken to be a width x height matrix 
+		* and renormalized to the color scale specified. 
+		*/
 		PlottingContext& show_heatmap(const double* buffer, int width, int height,
 			std::string palette = "") {
 
@@ -269,6 +311,9 @@ public:
 			return *this;
 		}
 
+		/* Shows a heatmap with a discrete set of categories, e.g. for categorizing pixels in an 
+		* image or showing spatial clustering. 
+		*/
 		PlottingContext& show_discrete_categories(std::vector<int> buffer, int width, int height,
 			int num_categories, bool zero_black=false) {
 
@@ -296,20 +341,29 @@ public:
 			return *this;
 		}
 
+		/* Sets a label for the color bar of a plot. 
+		*/
 		PlottingContext& set_cblabel(const std::string& val) {
 			pipe.send_line("set cblabel '" + val + "'");
 			return *this;
 		}
 
+		/* Remove the colorbar ticks from a plot which includes the colorbar
+		*/
 		PlottingContext& unset_cb_ticks(const std::string& val) {
 			pipe.send_line("unset cbtics");
 			return *this;
 		}
 
+		/* A function which uses the local Image interface. Plots an image. 
+		*/
 		PlottingContext& show_image(const Image& image) {
 			return this->show_image(image.view(), image.width, image.height, image.channels);
 		}
 
+		/* Visualizes a binary encoded black/white image, where each bit is taken to be a pixel
+		* off or on
+		*/
 		PlottingContext& show_binary_image(unsigned char *data, int width, int height) {
 			auto raw_pipe = pipe.raw();
 			pipe.send_line("set yrange [*:*] reverse");
@@ -326,6 +380,9 @@ public:
 			return *this;
 		}
 
+		/* Plot multiple data sequences without specifying the X labels, the values are plotted
+		* on the same plot on top of each other. 
+		*/
 		PlottingContext& plot_multiple_sequence(std::vector<std::vector<double>> values) {
 			const unsigned long inner_size = values[0].size();
 			if (inner_size == 1) {
@@ -354,12 +411,18 @@ public:
 
 	};
 
+	/* Obtain a plotting context. The context is to be used to generate individual gnuplots. 
+	* When a context closes, the pipe sends an end marker to gnuplot. When the context opens, 
+	* it opens a new terminal. 
+	*/
 	PlottingContext context() {
 		pipe.send_line("pause 0");
 		pipe.send_line("set term wxt " + std::to_string(plot_id++) + " persist");
 		return PlottingContext(pipe);
 	}
 
+	/* Set the gnuplot terminal to the specified value. 
+	*/
 	void set_terminal(std::string terminal) {
 		pipe.send_line("set term " + terminal);
 	}
@@ -370,6 +433,9 @@ public:
 		// pipe.close();
 	}
 
+	/*
+	
+	*/
 	void block() {
 		// First we ensure that gnuplot has really flushed all our data:
 		pipe.flush_send_end_of_data(0);
@@ -384,6 +450,9 @@ public:
 		} while (!(v == "continue") && !(v == "clear"));
 	}
 
+	/*
+	
+	*/
 	void wait() {
 		// NOTE: In this alternative to block() we do not flush the content  of the
 		// pipe to gnuplot immediately!

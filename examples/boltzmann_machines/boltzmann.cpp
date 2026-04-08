@@ -22,8 +22,8 @@ int main() {
 	// Construct the plotter object
 	Plotter p;
 
-	constexpr const auto MNIST_SIZE = 28;
-	constexpr const auto dataset_size = 10000;
+	constexpr const auto MNIST_SIZE = 64;
+	constexpr const auto dataset_size = 4250;
 
 	Machine machine_0(MNIST_SIZE * MNIST_SIZE, 529 /* 23 * 23 */);
 	Machine machine_1(529, 361 /* 19 * 19 */);
@@ -42,8 +42,8 @@ int main() {
 	// Load up the MNIST image dataset and binarize it using a threshold binarization
 	// policy
 	VectorCollection<VectorBoltzmann>  dataset(dataset_size);
-	DatasetRepo::load_mnist_eigen<float>(
-		"vector_mnist_full.data", dataset_size, dataset, /* binarization threshold */ 127, 0.0, 1.0);
+	DatasetRepo::load_real_faces_128<float>(
+		"archive_reduced", dataset_size, dataset);
 
 	std::cout << "> Loaded the dataset: " << dataset.size() << " elements. " << std::endl;
 
@@ -57,9 +57,9 @@ int main() {
 	{
 		auto scoped = timer.scoped("Training");
 		dbf.unsupervised_train(
-			/* Number of iterations */ 40,
+			/* Number of iterations */ 20,
 			dataset,
-			/* Mini batch size */ 250,
+			/* Mini batch size */ 125,
 			/* Learning rate */ 0.02,
 			/* K parameter for CD-K divergence algo */ 13
 		);

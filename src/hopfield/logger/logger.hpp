@@ -168,8 +168,8 @@ public:
             for (const auto index : indexes) {
                 (reinterpret_cast<uint32_t*>(log_buf.write_buffer.get()))[index]
                     = (group_change.get(index)) ? 0xFFFFFFFF : 0;
-                gio.write_frame(log_buf.write_buffer.get());
             }
+            gio.write_frame(log_buf.write_buffer.get());
         }
     }
 
@@ -239,7 +239,7 @@ public:
                 throw std::runtime_error("Cannot begin logging the states: no save file was specified.");
             const auto height = begin_state.get_size() / begin_state.get_stride_y();
             const auto width = begin_state.get_stride_y();
-            gio.begin(states_gif_save, width, height, /* delay in 10*ms */ 2);
+            gio.begin(states_gif_save, width, height, /* delay in 10*ms */ 15);
 
             this->update_logger_buffer(begin_state, /* reset = */ true);
             gio.write_frame(log_buf.write_buffer.get());

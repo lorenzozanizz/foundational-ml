@@ -107,4 +107,7 @@ int main() {
 	u_clustering.plot(plotter);
 	kmeans_on_units.plot(plotter);
 
+	plotter.block();
+
+
 }
